@@ -90,6 +90,16 @@
 	;time varibles
 	TIME_FRAME                  db 0   	; time used to make 1 fps
 	Respawn_Time 				dw 0	; it's the time between a cumlative power-ups generation (Respawning) Process
+
+
+	;الشوط 5 نقط لازم اي لاعيب يكسب 3 اشطواط
+	LEFT_SCORE_DER_GAME DB, 00H ;number of points in the game
+	LEFT_SCORE_GAMES DB, 00H ;number of games
+
+	RIGHT_SCORE_DER_GAME DB, 00H ;number of points in the game
+	RIGHT_SCORE_GAMES DB, 00H ;number of games
+	score db "Score : $"
+
 .code
 MAIN PROC FAR
 	;your code
@@ -137,6 +147,10 @@ MAIN PROC FAR
 	                                 CALL  DRAW_CENTER                     	;7-draw center line
 
 	;powers procs
+									CALL MOVE_FIRE_POWER_LEFT_PROC
+									call DRAW_FIRE_POWER_LEFT_PROC
+
+									
 	                                 CALL  MOVE_FREEZE_POWER_RIGHT_PROC
 	                                 CALL  DRAW_FREEZE_POWER_RIGHT_PROC
 
@@ -145,6 +159,8 @@ MAIN PROC FAR
 
 	                                 call  COUNTFREEZEP1
 	                                 call  COUNTFREEZEP2
+
+									 CALL DRAW_SCORE ;drawing the score
 
 	                                 jmp   MIAN_LOOP
 
@@ -176,6 +192,52 @@ DRAW_BALL_PROC PROC near
 	                                 ret
 DRAW_BALL_PROC ENDP
 RESTART_BALL_PROC PROC near
+
+	;0-set the point to the player
+								  cmp BALL_X,0a0h             ;if the ball fall in LEFT side then player Right get 1 point
+								  jl POINT_TO_RIGHT
+								  mov al,LEFT_SCORE_DER_GAME
+								  inc al
+								  cmp al,6 ;if he reached point number 6 then he need to add 1 game and start a new شوط 
+								  je INCREASE_ONE_GAME_LEFT
+								  jmp INCREASE_ONE_POINT_LEFT
+
+								  INCREASE_ONE_GAME_LEFT:
+								  mov al,LEFT_SCORE_GAMES
+								  inc al
+								  mov LEFT_SCORE_GAMES,al;add new game to player l
+								  mov al,0
+								  mov LEFT_SCORE_DER_GAME,al;reset the score
+								  mov RIGHT_SCORE_DER_GAME,al;reset the score
+								  jmp RESTART_BALL_PROC_REST
+
+								  INCREASE_ONE_POINT_LEFT:
+								  mov LEFT_SCORE_DER_GAME,al
+								  jmp RESTART_BALL_PROC_REST
+
+								  POINT_TO_RIGHT:
+								  mov al,RIGHT_SCORE_DER_GAME
+								  inc al
+								  cmp al,6
+								  je INCREASE_ONE_GAME_RIGHT
+								  jmp INCREASE_ONE_POINT_RIGHT
+
+								  INCREASE_ONE_GAME_RIGHT:
+								  mov al,RIGHT_SCORE_GAMES
+								  inc al
+								  mov RIGHT_SCORE_GAMES,al
+								  mov al,0
+								  mov RIGHT_SCORE_DER_GAME,al
+								  mov LEFT_SCORE_DER_GAME,al
+								  jmp RESTART_BALL_PROC_REST
+
+								  INCREASE_ONE_POINT_RIGHT:
+								  mov RIGHT_SCORE_DER_GAME,al
+
+
+
+								  RESTART_BALL_PROC_REST:
+
 
 	;1-rest all powers
 	                                 CALL  REST_FIRE_POWER_ALL
@@ -1218,5 +1280,58 @@ Respawn_PowerUp_FREEZE PROC near
 	                                 popa
 	                                 ret
 Respawn_PowerUp_FREEZE ENDP
+DRAW_SCORE PROC NEAR
+								MOV AH,02H		;move cursor to X,Y position
+                                MOV DL,0      	;X-position of the message
+                                MOV DH,1		;move the cursor to the new line
+                                INT 10H
 
+								MOV AH,09H
+                                MOV DX,offset score 	;print the first line
+                                INT 21H
+                                
+
+								mov dl,LEFT_SCORE_GAMES
+								add dl,30h;
+								mov ah,2
+								int 21h
+
+								
+								mov dl," "
+								mov ah,2
+								int 21h
+
+								mov dl,LEFT_SCORE_DER_GAME
+								add dl,30h;
+								mov ah,2
+								int 21h
+
+
+
+                                MOV AH,02H		;move cursor to X,Y position
+                                MOV DL,28      	;X-position of the message
+                                MOV DH,1 		;move the cursor to the new line
+                                INT 10H
+
+								MOV AH,09H
+                                MOV DX,offset score 	;print the first line
+                                INT 21H
+                                
+
+								mov dl,RIGHT_SCORE_GAMES
+								add dl,30h;
+								mov ah,2
+								int 21h
+
+								
+								mov dl," "
+								mov ah,2
+								int 21h
+
+								mov dl,RIGHT_SCORE_DER_GAME
+								add dl,30h;
+								mov ah,2
+								int 21h
+								ret
+DRAW_SCORE ENDP
     END MAIN
