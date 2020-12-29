@@ -4,6 +4,11 @@
     .STACK 64
 .DATA
 	;your data(varables)
+
+    MES1 DB 'To start chatting press f1','$'
+	MES2 DB 'To start Pong press f2','$'
+    MES3 DB 'To end the program press Esc','$'
+
 	SCREEN_WIDTH          DW 140H	;320 PIXELS
 	SCREEN_HEIGHT         DW 0C8h	;200 PIXELS
 	BALL_X_ORIGIN         DW 0a0h	;(160,100)
@@ -33,12 +38,49 @@
 .code
 MAIN PROC FAR
 	;your code
-	                              MOV  AX, @DATA
-	                              MOV  DS,AX
+	                            MOV  AX, @DATA
+	                            MOV  DS,AX
 
 
 
-	                              mov  ah,0
+	                            mov  ah,0
+	                            mov  al,13h
+	                            int  10h                          	;set graphics mode(320x200)
+                                  
+
+                                CALL MENUES
+                                ;check if any key is being pressed (if not check again)
+                                CHECK_AGAIN:
+                                MOV AH,01H
+                                INT 16H
+                                JZ CHECK_AGAIN 		;if no press => ZF =0 => check again
+                                ;check which key is being pressed
+                                MOV AH,00H 							;AL=ASCII Code AH=Scan code
+                                INT 16H
+                                ;if it is 'f1' 
+                                CMP AH,3BH 		 		
+                                JE START_CHATING
+                                
+
+                        
+                                ;if it is 'f2' 
+                                CMP AH,3CH				
+                                JE START_GAME
+                                
+
+
+                                ;if it is 'Esc' 
+                                CMP AL,1bH 		 		; 1BH is the Ecs ASCII code
+                                JE END_GAME
+                                JMP CHECK_AGAIN 					;neither f1 nor f2 nor Esc
+
+
+
+MAIN ENDP
+
+START_GAME proc NEAR
+                                  CALL CLEAR_SCREEN
+                                  mov  ah,0
 	                              mov  al,13h
 	                              int  10h                          	;set graphics mode(320x200)
 
@@ -58,12 +100,74 @@ MAIN PROC FAR
 	                              CALL DRAW_PADDLE_RIGHT_PROC       	;6-draw paddle right
 	                              CALL DRAW_CENTER                  	;7-draw center line
 	                              jmp  MIAN_LOOP
+			RET
 
-    
+START_GAME ENDP
+
+
+START_CHATING proc NEAR
+
+                                CALL CLEAR_SCREEN
+                                MOV AH,02H
+                                MOV DL,'&'	 	;print &
+                                INT 21H
+                                RET
+START_CHATING ENDP
+
+END_GAME proc NEAR
+                                CALL CLEAR_SCREEN
+                                MOV AH,02H
+                                MOV DX,'%'	;print %
+                                INT 21H
+                                RET
+
+END_GAME ENDP
+
+MENUES PROC NEAR 
+                                MOV AH,02H		;move cursor to X,Y position
+                                MOV DL,6      	;X-position of the message
+                                MOV DH,8		;Y-position of the message
+                                INT 10H
+                                
+                                MOV AH,02H
+                                MOV DL,'*'	 	;print the first *
+                                INT 21H
+                                
+                                MOV AH,09H
+                                MOV DX,offset MES1 	;print the first line
+                                INT 21H
+                                
+                                MOV AH,02H		;move cursor to X,Y position
+                                MOV DL,6      	;X-position of the message
+                                MOV DH,11		;move the cursor to the new line
+                                INT 10H
+                                
+                                MOV AH,02H
+                                MOV DL,'*'	 	;print the second *
+                                INT 21H
+                                
+                                MOV AH,09H		;print the second line
+                                MOV DX,offset MES2
+                                INT 21H
+                                
+                                MOV AH,02H		;move cursor to X,Y position
+                                MOV DL,6      	;X-position of the message
+                                MOV DH,14		;move the cursor to the new line
+                                INT 10H
+                                
+                                MOV AH,02H
+                                MOV DL,'*'	 	;print the third *
+                                INT 21H
+                                
+                                MOV AH,09H		;print the third line
+                                MOV DX,offset MES3
+                                INT 21H
+                        RET
+MENUES ENDP
 
 
 
-MAIN ENDP
+
 DRAW_BALL_PROC PROC near
 
 	                              mov  cx,BALL_X                    	;Column
