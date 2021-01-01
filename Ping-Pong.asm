@@ -10,11 +10,11 @@
 	MES3                  DB                   'To end the program press Esc','$'
 
 	SCREEN_WIDTH          DW                   140H                                                                                                                                                                    	;320 PIXELS
-	SCREEN_HEIGHT         DW                   0C8h                                                                                                                                                                    	;200 PIXELS
+	SCREEN_HEIGHT         DW                   7eh                                                                                                                                                                    	;200 PIXELS
 	BALL_X_ORIGIN         DW                   0a0h                                                                                                                                                                    	;(160,100)
-	BALL_Y_ORIGIN         DW                   64h                                                                                                                                                                     	;
+	BALL_Y_ORIGIN         DW                   3fh                                                                                                                                                                     	;
 	BALL_X                dW                   0a0h                                                                                                                                                                    	; x postion of the ball
-	BALL_Y                dW                   64h                                                                                                                                                                     	; y postion of the ball
+	BALL_Y                dW                   3fh                                                                                                                                                                     	; y postion of the ball
 	BALL_SPEED_X          dw                   4                                                                                                                                                                       	; speed x
 	BALL_SPEED_Y          dw                   4                                                                                                                                                                       	; speed y
 	Original_BALL_SPEED_X dw                   4                                                                                                                                                                       	; speed x
@@ -25,14 +25,14 @@
 	BALL_Y_BYTE           DB                   64h                                                                                                                                                                     	;4*4=16 PIXELS
 
 	PADDLE_LEFT_X         DW                   1h                                                                                                                                                                      	;paddle left postion x
-	PADDLE_LEFT_Y         DW                   4fh                                                                                                                                                                     	;paddle left postion y
+	PADDLE_LEFT_Y         DW                   30h                                                                                                                                                                     	;paddle left postion y
 	PADDLE_LEFT_WIDTH     DW                   6h                                                                                                                                                                      	;paddle left width
-	PADDLE_LEFT_HEIGHT    DW                   30h                                                                                                                                                                     	;paddle left hight
+	PADDLE_LEFT_HEIGHT    DW                   1eh                                                                                                                                                                     	;paddle left hight
 
 	PADDLE_RIGHT_X        DW                   139h                                                                                                                                                                    	;paddle right postion x
-	PADDLE_RIGHT_Y        DW                   4fh                                                                                                                                                                     	;paddle right postion y
+	PADDLE_RIGHT_Y        DW                   30h                                                                                                                                                                     	;paddle right postion y
 	PADDLE_RIGHT_WIDTH    DW                   6h                                                                                                                                                                      	;paddle right width
-	PADDLE_RIGHT_HEIGHT   DW                   30h                                                                                                                                                                     	;paddle right height
+	PADDLE_RIGHT_HEIGHT   DW                   1eh                                                                                                                                                                     	;paddle right height
 
 	L_PADDLE_SPEED        DW                   8h                                                                                                                                                                      	;paddle right height
 	R_PADDLE_SPEED        DW                   0bh                                                                                                                                                                     	;paddle right height
@@ -2475,10 +2475,20 @@ MOVE_PADDLE_PROC ENDP
 
 DRAW_SCORE PROC NEAR
 	                              MOV  AH,02H                       	;move cursor to X,Y position
-	                              MOV  DL,0                         	;X-position of the message
-	                              MOV  DH,1                         	;move the cursor to the new line
+	                              MOV  DL,0                         	;X-position of the message(x)
+	                              MOV  DH,16                         	;move the cursor to the new line(y)
 	                              INT  10H
-
+								 
+								 ; draw an line1
+								  mov cx,0 ;Column
+							      mov dx,SCREEN_HEIGHT ;Row
+								  mov al,1 ;Pixel color
+								  mov ah,0ch ;Draw Pixel Command
+								  back1: int 10h
+								  inc cx
+								  cmp cx,320
+								  jnz back1
+								  
 	                              MOV  AH,09H
 	                              MOV  DX,offset score              	;print the first line
 	                              INT  21H
@@ -2503,7 +2513,7 @@ DRAW_SCORE PROC NEAR
 
 	                              MOV  AH,02H                       	;move cursor to X,Y position
 	                              MOV  DL,28                        	;X-position of the message
-	                              MOV  DH,1                         	;move the cursor to the new line
+	                              MOV  DH,16                         	;move the cursor to the new line
 	                              INT  10H
 
 	                              MOV  AH,09H
@@ -2525,6 +2535,18 @@ DRAW_SCORE PROC NEAR
 	                              add  dl,30h                       	;
 	                              mov  ah,2
 	                              int  21h
+
+								   ; draw an line2
+								  mov cx,0 ;Column
+							      mov dx,SCREEN_HEIGHT ;Row
+								  add dx,10
+								  mov al,1 ;Pixel color
+								  mov ah,0ch ;Draw Pixel Command
+								  back2: int 10h
+								  inc cx
+								  cmp cx,320
+								  jnz back2
+
 	                              ret
 DRAW_SCORE ENDP
 
