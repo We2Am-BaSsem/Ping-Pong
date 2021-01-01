@@ -8,9 +8,11 @@
 	MES1                  DB                   'To start chatting press f1','$'
 	MES2                  DB                   'To start Pong press f2','$'
 	MES3                  DB                   'To end the program press Esc','$'
+	MES4                  DB                   'To play again press f2','$'
+
 
 	SCREEN_WIDTH          DW                   140H                                                                                                                                                                    	;320 PIXELS
-	SCREEN_HEIGHT         DW                   7eh                                                                                                                                                                    	;200 PIXELS
+	SCREEN_HEIGHT         DW                   7eh                                                                                                                                                                     	;200 PIXELS
 	BALL_X_ORIGIN         DW                   0a0h                                                                                                                                                                    	;(160,100)
 	BALL_Y_ORIGIN         DW                   3fh                                                                                                                                                                     	;
 	BALL_X                dW                   0a0h                                                                                                                                                                    	; x postion of the ball
@@ -1665,7 +1667,7 @@ MAIN PROC FAR
 	                              
 	                              
                                   
-	                              CALL MENUES
+	                              CALL MENUES1
 	;check if any key is being pressed (if not check again)
 	CHECK_AGAIN:                  
 	                              MOV  AH,01H
@@ -1676,8 +1678,9 @@ MAIN PROC FAR
 	                              INT  16H
 	;if it is 'f1'
 	                              CMP  AH,3BH
-	                              JE   START_CHATING
-                                
+	                              JNE  BAR1
+	                              JMP  START_CHATING
+	BAR1:                         
 
                         
 	;if it is 'f2'
@@ -1687,8 +1690,10 @@ MAIN PROC FAR
 
 
 	;if it is 'Esc'
-	                              CMP  AL,1bH                       	; 1BH is the Ecs ASCII code
-	                              JE   END_GAME
+	                              CMP  AL,1bH
+	                              JNE  BAR2                         	; 1BH is the Ecs ASCII code
+	                              JMP  END_GAME
+	BAR2:                         
 	                              JMP  CHECK_AGAIN                  	;neither f1 nor f2 nor Esc
 
 
@@ -1750,6 +1755,28 @@ START_GAME proc NEAR
 	                              CALL DRAW_CENTER                  	;7-draw center line
 
 	                              CALL DRAW_SCORE                   	;drawing the score
+								  
+	                              MOV  BL,LEFT_SCORE_GAMES
+	                              CMP  BL,2
+	                              JNE  BAR3
+		
+	                              MOV  BL,LEFT_SCORE_DER_GAME
+	                              CMP  BL,5
+	                              JNE  BAR3
+	                              JMP  MENUES2                      	;move to game over screen
+	BAR3:                         
+
+	                              MOV  BL,RIGHT_SCORE_GAMES
+	                              CMP  BL,2
+	                              JNE  BAR4
+								
+	                              MOV  BL,RIGHT_SCORE_DER_GAME
+	                              CMP  BL,5
+	                              JNE  BAR4
+	                              JMP  MENUES2                      	;move to game over screen
+	BAR4:                         
+
+
 	                              CALL DELAY
 	                              
 	                              jmp  MIAN_LOOP
@@ -1775,12 +1802,13 @@ START_CHATING proc NEAR
 START_CHATING ENDP
 
 END_GAME proc NEAR
+	                              CALL CLEAR_SCREEN
 	                              MOV  AH, 4CH
 	                              MOV  AL, 01
 	                              INT  21H
 END_GAME ENDP
 
-MENUES PROC NEAR
+MENUES1 PROC NEAR
 	                              MOV  AH,02H                       	;move cursor to X,Y position
 	                              MOV  DL,6                         	;X-position of the message
 	                              MOV  DH,8                         	;Y-position of the message
@@ -1820,7 +1848,87 @@ MENUES PROC NEAR
 	                              MOV  DX,offset MES3
 	                              INT  21H
 	                              RET
-MENUES ENDP
+MENUES1 ENDP
+
+MENUES2 PROC NEAR
+	                              CALL CLEAR_SCREEN
+	                              MOV  AH,02H                       	;move cursor to X,Y position
+	                              MOV  DL,6                         	;X-position of the message
+	                              MOV  DH,8                         	;Y-position of the message
+	                              INT  10H
+                                
+	                              MOV  AH,02H
+	                              MOV  DL,'*'                       	;print the first *
+	                              INT  21H
+                                
+	                              MOV  AH,09H
+	                              MOV  DX,offset MES1               	;print the first line
+	                              INT  21H
+                                
+	                              MOV  AH,02H                       	;move cursor to X,Y position
+	                              MOV  DL,6                         	;X-position of the message
+	                              MOV  DH,11                        	;move the cursor to the new line
+	                              INT  10H
+                                
+	                              MOV  AH,02H
+	                              MOV  DL,'*'                       	;print the second *
+	                              INT  21H
+                                
+	                              MOV  AH,09H                       	;print the second line
+	                              MOV  DX,offset MES4
+	                              INT  21H
+                                
+	                              MOV  AH,02H                       	;move cursor to X,Y position
+	                              MOV  DL,6                         	;X-position of the message
+	                              MOV  DH,14                        	;move the cursor to the new line
+	                              INT  10H
+                                
+	                              MOV  AH,02H
+	                              MOV  DL,'*'                       	;print the third *
+	                              INT  21H
+                                
+	                              MOV  AH,09H                       	;print the third line
+	                              MOV  DX,offset MES3
+	                              INT  21H
+
+	                              MOV  LEFT_SCORE_DER_GAME,0            ;seting deafut values
+	                              MOV  LEFT_SCORE_GAMES,0
+	                              MOV  RIGHT_SCORE_GAMES,0
+	                              MOV  RIGHT_SCORE_DER_GAME,0
+
+
+	CHECK_AGAIN2:                 
+	                              MOV  AH,01H
+	                              INT  16H
+	                              JZ   CHECK_AGAIN2                 	;if no press => ZF =0 => check again
+	;check which key is being pressed
+	                              MOV  AH,00H                       	;AL=ASCII Code AH=Scan code
+	                              INT  16H
+	;if it is 'f1'
+	                              CMP  AH,3BH
+	                              JNE  BAR5
+	                              JMP  START_CHATING
+	BAR5:                         
+
+                        
+	;if it is 'f2'
+	                              CMP  AH,3CH
+	                              JNE  BAR6
+	                              JMP  START_GAME
+            
+	BAR6:                         
+
+	;if it is 'Esc'
+	                              CMP  AL,1bH
+	                              JNE  BAR7                         	; 1BH is the Ecs ASCII code
+	                              JMP  END_GAME
+	BAR7:                         
+	                              JMP  CHECK_AGAIN2                 	;neither f1 nor f2 nor Esc
+	                              
+
+					              
+	                              RET
+MENUES2 ENDP
 
 CLEAR_PADDLE_RIGHT PROC near
 	;first we start the image offset from the pixel that's on the top left corner of the right paddle
@@ -2476,18 +2584,18 @@ MOVE_PADDLE_PROC ENDP
 DRAW_SCORE PROC NEAR
 	                              MOV  AH,02H                       	;move cursor to X,Y position
 	                              MOV  DL,0                         	;X-position of the message(x)
-	                              MOV  DH,16                         	;move the cursor to the new line(y)
+	                              MOV  DH,16                        	;move the cursor to the new line(y)
 	                              INT  10H
 								 
-								 ; draw an line1
-								  mov cx,0 ;Column
-							      mov dx,SCREEN_HEIGHT ;Row
-								  mov al,1 ;Pixel color
-								  mov ah,0ch ;Draw Pixel Command
-								  back1: int 10h
-								  inc cx
-								  cmp cx,320
-								  jnz back1
+	; draw an line1
+	                              mov  cx,0                         	;Column
+	                              mov  dx,SCREEN_HEIGHT             	;Row
+	                              mov  al,1                         	;Pixel color
+	                              mov  ah,0ch                       	;Draw Pixel Command
+	back1:                        int  10h
+	                              inc  cx
+	                              cmp  cx,320
+	                              jnz  back1
 								  
 	                              MOV  AH,09H
 	                              MOV  DX,offset score              	;print the first line
@@ -2498,7 +2606,8 @@ DRAW_SCORE PROC NEAR
 	                              add  dl,30h                       	;
 	                              mov  ah,2
 	                              int  21h
-
+								  
+								  
 								
 	                              mov  dl," "
 	                              mov  ah,2
@@ -2508,12 +2617,12 @@ DRAW_SCORE PROC NEAR
 	                              add  dl,30h                       	;
 	                              mov  ah,2
 	                              int  21h
-
+								  
 
 
 	                              MOV  AH,02H                       	;move cursor to X,Y position
 	                              MOV  DL,28                        	;X-position of the message
-	                              MOV  DH,16                         	;move the cursor to the new line
+	                              MOV  DH,16                        	;move the cursor to the new line
 	                              INT  10H
 
 	                              MOV  AH,09H
@@ -2536,16 +2645,16 @@ DRAW_SCORE PROC NEAR
 	                              mov  ah,2
 	                              int  21h
 
-								   ; draw an line2
-								  mov cx,0 ;Column
-							      mov dx,SCREEN_HEIGHT ;Row
-								  add dx,10
-								  mov al,1 ;Pixel color
-								  mov ah,0ch ;Draw Pixel Command
-								  back2: int 10h
-								  inc cx
-								  cmp cx,320
-								  jnz back2
+	; draw an line2
+	                              mov  cx,0                         	;Column
+	                              mov  dx,SCREEN_HEIGHT             	;Row
+	                              add  dx,10
+	                              mov  al,1                         	;Pixel color
+	                              mov  ah,0ch                       	;Draw Pixel Command
+	back2:                        int  10h
+	                              inc  cx
+	                              cmp  cx,320
+	                              jnz  back2
 
 	                              ret
 DRAW_SCORE ENDP
