@@ -12,7 +12,7 @@
 
 
 	SCREEN_WIDTH          DW                   140H                                                                                                                                                                    	;320 PIXELS
-	SCREEN_HEIGHT         DW                   7eh                                                                                                                                                                     	;200 PIXELS
+	SCREEN_HEIGHT         DW                   9eh                                                                                                                                                                     	;200 PIXELS
 	BALL_X_ORIGIN         DW                   0a0h                                                                                                                                                                    	;(160,100)
 	BALL_Y_ORIGIN         DW                   3fh                                                                                                                                                                     	;
 	BALL_X                dW                   0a0h                                                                                                                                                                    	; x postion of the ball
@@ -29,12 +29,12 @@
 	PADDLE_LEFT_X         DW                   1h                                                                                                                                                                      	;paddle left postion x
 	PADDLE_LEFT_Y         DW                   30h                                                                                                                                                                     	;paddle left postion y
 	PADDLE_LEFT_WIDTH     DW                   6h                                                                                                                                                                      	;paddle left width
-	PADDLE_LEFT_HEIGHT    DW                   1eh                                                                                                                                                                     	;paddle left hight
+	PADDLE_LEFT_HEIGHT    DW                   28h                                                                                                                                                                     	;paddle left hight
 
 	PADDLE_RIGHT_X        DW                   139h                                                                                                                                                                    	;paddle right postion x
 	PADDLE_RIGHT_Y        DW                   30h                                                                                                                                                                     	;paddle right postion y
 	PADDLE_RIGHT_WIDTH    DW                   6h                                                                                                                                                                      	;paddle right width
-	PADDLE_RIGHT_HEIGHT   DW                   1eh                                                                                                                                                                     	;paddle right height
+	PADDLE_RIGHT_HEIGHT   DW                   28h                                                                                                                                                                     	;paddle right height
 
 	L_PADDLE_SPEED        DW                   8h                                                                                                                                                                      	;paddle right height
 	R_PADDLE_SPEED        DW                   0bh                                                                                                                                                                     	;paddle right height
@@ -49,6 +49,8 @@
 	                      RIGHT_SCORE_DER_GAME DB, 00H                                                                                                                                                                 	;number of points in the game
 	                      RIGHT_SCORE_GAMES    DB, 00H                                                                                                                                                                 	;number of games
 	score                 db                   "Score : $"
+	player1name           db                   "We'am $"
+	player2name           db                   "Gasser $"
 
 	imgW                  EQU                  320
 	imgH                  EQU                  200
@@ -1891,7 +1893,7 @@ MENUES2 PROC NEAR
 	                              MOV  DX,offset MES3
 	                              INT  21H
 
-	                              MOV  LEFT_SCORE_DER_GAME,0            ;seting deafut values
+	                              MOV  LEFT_SCORE_DER_GAME,0        	;seting deafut values
 	                              MOV  LEFT_SCORE_GAMES,0
 	                              MOV  RIGHT_SCORE_GAMES,0
 	                              MOV  RIGHT_SCORE_DER_GAME,0
@@ -2076,7 +2078,11 @@ DRAW_BALL_PROC PROC near
 DRAW_BALL_PROC ENDP
 RESTART_BALL_PROC PROC near
 	;this proc draw the ball at the center
-							
+								  
+	                              mov  cx,0fh
+	                              mov  dx, 0ffffh
+	                              mov  ah,86h
+	                              int  15h
 	                              cmp  BALL_X,0a0h                  	;if the ball fall in LEFT side then player Right get 1 point
 	                              jl   POINT_TO_RIGHT
 	                              mov  al,LEFT_SCORE_DER_GAME
@@ -2184,15 +2190,9 @@ RESTART_BALL_PROC PROC near
 RESTART_BALL_PROC ENDP
 CLEAR_SCREEN PROC near
 	;clear screen by draw an black one
-	                              mov  cx,BALL_X                    	;Column
-	                              mov  dx,BALL_Y                    	;Row
-
-	                              mov  ax,0600h
-	                              mov  bh,0
-	                              mov  cx,0
-	                              mov  dx,184FH
+	                              mov  ah,0
+	                              mov  al,13h
 	                              int  10h
-
 	                              ret
 CLEAR_SCREEN ENDP
 
@@ -2584,7 +2584,7 @@ MOVE_PADDLE_PROC ENDP
 DRAW_SCORE PROC NEAR
 	                              MOV  AH,02H                       	;move cursor to X,Y position
 	                              MOV  DL,0                         	;X-position of the message(x)
-	                              MOV  DH,16                        	;move the cursor to the new line(y)
+	                              MOV  DH,20                        	;move the cursor to the new line(y)
 	                              INT  10H
 								 
 	; draw an line1
@@ -2597,6 +2597,10 @@ DRAW_SCORE PROC NEAR
 	                              cmp  cx,320
 	                              jnz  back1
 								  
+	                              MOV  AH,09H
+	                              MOV  DX,offset player1name        	;print the first line
+	                              INT  21H
+
 	                              MOV  AH,09H
 	                              MOV  DX,offset score              	;print the first line
 	                              INT  21H
@@ -2619,11 +2623,14 @@ DRAW_SCORE PROC NEAR
 	                              int  21h
 								  
 
-
 	                              MOV  AH,02H                       	;move cursor to X,Y position
-	                              MOV  DL,28                        	;X-position of the message
-	                              MOV  DH,16                        	;move the cursor to the new line
+	                              MOV  DL,22                        	;X-position of the message
+	                              MOV  DH,20                        	;move the cursor to the new line
 	                              INT  10H
+
+	                              MOV  AH,09H
+	                              MOV  DX,offset player2name        	;print the first line
+	                              INT  21H
 
 	                              MOV  AH,09H
 	                              MOV  DX,offset score              	;print the first line
