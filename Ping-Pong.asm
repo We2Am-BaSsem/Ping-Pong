@@ -9,7 +9,9 @@
 	MES2                  DB                   'To start Pong press f2','$'
 	MES3                  DB                   'To end the program press Esc','$'
 	MES4                  DB                   'To play again press f2','$'
-
+	Mes5                  DB                   'Please Enter Your Name','$'
+	Mes6                  DB                   'Press Enter Key to Continue','$'
+	Mes7                  DB                   'Invalid name Try Again','$'
 
 	SCREEN_WIDTH          DW                   140H                                                                                                                                                                    	;320 PIXELS
 	SCREEN_HEIGHT         DW                   9eh                                                                                                                                                                     	;200 PIXELS
@@ -49,8 +51,8 @@
 	                      RIGHT_SCORE_DER_GAME DB, 00H                                                                                                                                                                 	;number of points in the game
 	                      RIGHT_SCORE_GAMES    DB, 00H                                                                                                                                                                 	;number of games
 	score                 db                   "Score : $"
-	player1name           db                   "We'am $"
-	player2name           db                   "Gasser $"
+	player1name           db                   15,?,15 dup('$')
+	player2name           db                   15,?,15 dup('$')
 
 	imgW                  EQU                  320
 	imgH                  EQU                  200
@@ -1666,9 +1668,13 @@ MAIN PROC FAR
 	                              mov  al,13h
 	                              int  10h                          	;set graphics mode(320x200)
 
-	                              
-	                              
-                                  
+	
+
+	                              CALL InputPlayer1
+	                              CALL CLEAR_SCREEN
+	                              CALL InputPlayer2
+
+	                              call CLEAR_SCREEN
 	                              CALL MENUES1
 	;check if any key is being pressed (if not check again)
 	CHECK_AGAIN:                  
@@ -1681,27 +1687,162 @@ MAIN PROC FAR
 	;if it is 'f1'
 	                              CMP  AH,3BH
 	                              JNE  BAR1
-	                              JMP  START_CHATING
+	                              CALL START_CHATING
 	BAR1:                         
 
                         
 	;if it is 'f2'
 	                              CMP  AH,3CH
-	                              JE   START_GAME
+	                              CALL START_GAME
                                 
 
 
 	;if it is 'Esc'
 	                              CMP  AL,1bH
 	                              JNE  BAR2                         	; 1BH is the Ecs ASCII code
-	                              JMP  END_GAME
+	                              CALL END_GAME
 	BAR2:                         
 	                              JMP  CHECK_AGAIN                  	;neither f1 nor f2 nor Esc
 
 
 
+	
+
 MAIN ENDP
 
+InputPlayer1 proc near
+	Enter_Name1:                  
+	                              MOV  AH,02H                       	;move cursor to X,Y position
+	                              MOV  DL,6                         	;X-position of the message
+	                              MOV  DH,8                         	;Y-position of the message
+	                              INT  10H
+                                
+	                              MOV  AH,09H
+	                              MOV  DX,offset Mes5               	;print the first line
+	                              INT  21H
+	InputName1:                   
+
+	                              MOV  AH,02H                       	;move cursor to X,Y position
+	                              MOV  DL,6                         	;X-position of the message
+	                              MOV  DH,15                        	;move the cursor to the new line
+	                              INT  10H
+
+	                              MOV  AH,09H
+	                              MOV  DX,offset Mes6               	;print the second line
+	                              INT  21H
+								  
+	                              MOV  AH,02H                       	;move cursor to X,Y position
+	                              MOV  DL,6                         	;X-position of the message
+	                              MOV  DH,11                        	;move the cursor to the new line
+	                              INT  10H
+                                
+	                              mov  ah,0aH
+	                              mov  dx,offset player1name        	;read player1 name
+	                              int  21h
+
+	;first char is a capital char means between A(41h) and Z(5Ah)
+	                              cmp  player1name+2,41h
+	                              jl   Invalid1
+	                              cmp  player1name+2,5ah
+	                              jg   Invalid1
+
+	;Here I loop on the rest of the name checking that they are small chars betwwen a(61h) and z(7ah)
+	                              mov  cl,player1name+1
+	                              sub  cl,1
+	                              mov  ch,0
+	                              mov  si, offset player1name+3
+	Validation1:                  
+	                              mov  al, byte ptr [si]
+	                              cmp  byte ptr [si],61h
+	                              jl   Invalid1
+	                              cmp  byte ptr [si],7ah
+	                              jg   Invalid1
+	                              inc  si
+	                              loop Validation1
+	                              ret
+
+
+	Invalid1:                     
+	                              call CLEAR_SCREEN
+	                              MOV  AH,02H                       	;move cursor to X,Y position
+	                              MOV  DL,6                         	;X-position of the message
+	                              MOV  DH,8                         	;Y-position of the message
+	                              INT  10H
+                                
+	                              MOV  AH,09H
+	                              MOV  DX,offset Mes7               	;print the first line
+	                              INT  21H
+	                              jmp  InputName1
+	                              ret
+InputPlayer1 ENDP
+
+
+InputPlayer2 PROC near
+
+	Enter_Name2:                  
+	                              MOV  AH,02H                       	;move cursor to X,Y position
+	                              MOV  DL,6                         	;X-position of the message
+	                              MOV  DH,8                         	;Y-position of the message
+	                              INT  10H
+
+	                              MOV  AH,09H
+	                              MOV  DX,offset Mes5               	;print the first line
+	                              INT  21H
+	InputName2:                   
+
+	                              MOV  AH,02H                       	;move cursor to X,Y position
+	                              MOV  DL,6                         	;X-position of the message
+	                              MOV  DH,15                        	;move the cursor to the new line
+	                              INT  10H
+
+	                              MOV  AH,09H
+	                              MOV  DX,offset Mes6               	;print the second line
+	                              INT  21H
+								  
+	                              MOV  AH,02H                       	;move cursor to X,Y position
+	                              MOV  DL,6                         	;X-position of the message
+	                              MOV  DH,11                        	;move the cursor to the new line
+	                              INT  10H
+                                
+	                              mov  ah,0aH
+	                              mov  dx,offset player2name        	;read player 2 name
+	                              int  21h
+
+	;first char is a capital char means between A(41h) and Z(5Ah)
+	                              cmp  player2name+2,41h
+	                              jl   Invalid2
+	                              cmp  player2name+2,5ah
+	                              jg   Invalid2
+
+	;Here I loop on the rest of the name checking that they are small chars betwwen a(61h) and z(7ah)
+	                              mov  cl,player2name+1
+	                              sub  cl,1
+	                              mov  ch,0
+	                              mov  si, offset player2name+3
+	Validation2:                  
+	                              mov  al, byte ptr [si]
+	                              cmp  byte ptr [si],61h
+	                              jl   Invalid2
+	                              cmp  byte ptr [si],7ah
+	                              jg   Invalid2
+	                              inc  si
+	                              loop Validation2
+
+	                              ret
+
+	Invalid2:                     
+	                              call CLEAR_SCREEN
+	                              MOV  AH,02H                       	;move cursor to X,Y position
+	                              MOV  DL,6                         	;X-position of the message
+	                              MOV  DH,8                         	;Y-position of the message
+	                              INT  10H
+                                
+	                              MOV  AH,09H
+	                              MOV  DX,offset Mes7               	;print the first line
+	                              INT  21H
+	                              jmp  InputName2
+	                              ret
+InputPlayer2 ENDP
 
 Draw Proc near
 	                              mov  ax, 4F02h                    	; This Graphics mode configuration uses SVGA configuration (https://en.wikipedia.org/wiki/Super_VGA)
@@ -2598,8 +2739,14 @@ DRAW_SCORE PROC NEAR
 	                              jnz  back1
 								  
 	                              MOV  AH,09H
-	                              MOV  DX,offset player1name        	;print the first line
+	                              MOV  DX,offset player1name+2      	;print the first line
 	                              INT  21H
+
+	                              MOV  AH,02H                       	;move cursor to X,Y position
+	                              MOV  DL,player1name+1             	;X-position of the message(x)
+	                              add  DL,1
+	                              MOV  DH,20                        	;move the cursor to the new line(y)
+	                              INT  10H
 
 	                              MOV  AH,09H
 	                              MOV  DX,offset score              	;print the first line
@@ -2622,15 +2769,25 @@ DRAW_SCORE PROC NEAR
 	                              mov  ah,2
 	                              int  21h
 								  
-
 	                              MOV  AH,02H                       	;move cursor to X,Y position
 	                              MOV  DL,22                        	;X-position of the message
 	                              MOV  DH,20                        	;move the cursor to the new line
 	                              INT  10H
 
+	                              MOV  AH,02H                       	;move cursor to X,Y position
+	                              MOV  DL,0                         	;X-position of the message(x)
+	                              MOV  DH,21                        	;move the cursor to the new line(y)
+	                              INT  10H
+
 	                              MOV  AH,09H
-	                              MOV  DX,offset player2name        	;print the first line
+	                              MOV  DX,offset player2name+2      	;print the first line
 	                              INT  21H
+
+	                              MOV  AH,02H                       	;move cursor to X,Y position
+	                              MOV  DL,player2name+1             	;X-position of the message(x)
+	                              add  DL,1
+	                              MOV  DH,21                        	;move the cursor to the new line(y)
+	                              INT  10H
 
 	                              MOV  AH,09H
 	                              MOV  DX,offset score              	;print the first line
@@ -2655,14 +2812,14 @@ DRAW_SCORE PROC NEAR
 	; draw an line2
 	                              mov  cx,0                         	;Column
 	                              mov  dx,SCREEN_HEIGHT             	;Row
-	                              add  dx,10
+	                              add  dx,20
 	                              mov  al,1                         	;Pixel color
 	                              mov  ah,0ch                       	;Draw Pixel Command
 	back2:                        int  10h
 	                              inc  cx
 	                              cmp  cx,320
 	                              jnz  back2
-
+	                              
 	                              ret
 DRAW_SCORE ENDP
 
